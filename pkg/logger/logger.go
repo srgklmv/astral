@@ -8,7 +8,7 @@ import (
 var logger *slog.Logger
 
 func Init() {
-	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 }
 
 func Info(msg string, args ...any) {

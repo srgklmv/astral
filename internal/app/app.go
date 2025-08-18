@@ -26,8 +26,6 @@ func (a *app) Run() error {
 		return err
 	}
 
-	controller.SetupRoutes(a.app)
-
 	if err := a.app.Listen("0.0.0.0:3000"); err != nil {
 		logger.Error("Server listen error.", slog.String("error", err.Error()))
 		return err

@@ -1,8 +1,10 @@
 package config
 
 import (
+	"encoding/json"
 	"log/slog"
 	"os"
+	"path/filepath"
 
 	"github.com/srgklmv/astral/pkg/logger"
 )
@@ -20,14 +22,29 @@ type Database struct {
 }
 
 func New() (Config, error) {
-	// TODO: add executable path
-	dir, err := os.Executable()
+	exec, err := os.Executable()
 	if err != nil {
 		logger.Error("new config error", slog.String("err", err.Error()))
 		return Config{}, err
 	}
 
-	logger.Debug("executable dir", slog.String("dir", dir))
+	dir, _ := filepath.Split(exec)
+	configPath := filepath.Join(dir, "config.json")
 
-	return Config{}, nil
+	file, err := os.Open(configPath)
+	if err != nil {
+		logger.Error("open config file error", slog.String("err", err.Error()))
+		return Config{}, err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	cfg := Config{}
+	err = decoder.Decode(&cfg)
+	if err != nil {
+		logger.Error("config decoding error", slog.String("err", err.Error()))
+		return Config{}, err
+	}
+
+	return cfg, nil
 }
