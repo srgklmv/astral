@@ -29,7 +29,7 @@ func (a *app) Run() error {
 		return err
 	}
 
-	controller := controller.New()
+	controller := controller.New(nil)
 	api.SetRoutes(a.app, controller)
 
 	if err := a.app.Listen("0.0.0.0:3000"); err != nil {

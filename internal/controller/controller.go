@@ -1,12 +1,18 @@
 package controller
 
-type controller struct{}
+type controller struct {
+	documentsUsecase documentsUsecase
+	authUsecase      authUsecase
+}
 
 type usecase interface {
 	authUsecase
-	docsUsecase
+	documentsUsecase
 }
 
-func New() *controller {
-	return &controller{}
+func New(usecase usecase) *controller {
+	return &controller{
+		//documentsUsecase: usecase,
+		//authUsecase:      usecase,
+	}
 }
