@@ -11,8 +11,19 @@ type (
 	}
 )
 
-type AuthResponse struct {
-	Token string `json:"token"`
-}
+type (
+	AuthRequest struct {
+		Login    string `json:"login"`
+		Password string `json:"pswd"`
+	}
+	AuthResponse struct {
+		Token string `json:"token"`
+	}
+)
 
-type LogoutResponse map[string]bool
+type (
+	LogoutRequest struct {
+		Token string `params:"token"`
+	}
+	LogoutResponse map[string]bool
+)

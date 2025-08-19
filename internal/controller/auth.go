@@ -10,9 +10,9 @@ import (
 )
 
 type authUsecase interface {
-	Register(token, login, password string) dto.APIResponse[dto.RegisterResponse, any]
-	Auth(login, password string) dto.APIResponse[dto.AuthResponse, any]
-	Logout(token string) dto.APIResponse[dto.LogoutResponse, any]
+	Register(token, login, password string) (dto.APIResponse[dto.RegisterResponse, any], int)
+	Auth(login, password string) (dto.APIResponse[dto.AuthResponse, any], int)
+	Logout(token string) (dto.APIResponse[dto.LogoutResponse, any], int)
 }
 
 func (c controller) Register(fc *fiber.Ctx) error {
@@ -21,22 +21,44 @@ func (c controller) Register(fc *fiber.Ctx) error {
 	if err != nil {
 		logger.Error("request parsing error", slog.String("error", err.Error()))
 		return fc.JSON(dto.NewAPIResponse[any, any](&dto.Error{
-			Code: models.SomeInternalErrorCode,
-			Text: models.SomeInternalErrorText,
+			Code: models.BodyParsingErrorCode,
+			Text: models.BodyParsingErrorText,
 		}, nil, nil))
 	}
 
-	result := c.authUsecase.Register(request.Token, request.Login, request.Password)
+	result, status := c.authUsecase.Register(request.Token, request.Login, request.Password)
 
-	return fc.JSON(result)
+	return fc.Status(status).JSON(result)
 }
 
 func (c controller) Auth(fc *fiber.Ctx) error {
-	panic("not implemented")
-	return nil
+	var request dto.AuthRequest
+	err := fc.BodyParser(&request)
+	if err != nil {
+		logger.Error("request parsing error", slog.String("error", err.Error()))
+		return fc.JSON(dto.NewAPIResponse[any, any](&dto.Error{
+			Code: models.BodyParsingErrorCode,
+			Text: models.BodyParsingErrorText,
+		}, nil, nil))
+	}
+
+	result, status := c.authUsecase.Auth(request.Login, request.Password)
+
+	return fc.Status(status).JSON(result)
 }
 
 func (c controller) Logout(fc *fiber.Ctx) error {
-	panic("not implemented")
-	return nil
+	var request dto.LogoutRequest
+	err := fc.ParamsParser(&request)
+	if err != nil {
+		logger.Error("request parsing error", slog.String("error", err.Error()))
+		return fc.JSON(dto.NewAPIResponse[any, any](&dto.Error{
+			Code: models.BodyParsingErrorCode,
+			Text: models.BodyParsingErrorText,
+		}, nil, nil))
+	}
+
+	result, status := c.authUsecase.Logout(request.Token)
+
+	return fc.Status(status).JSON(result)
 }

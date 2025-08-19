@@ -6,9 +6,9 @@ type (
 )
 
 const (
-	SomeInternalErrorText ErrorText = "Oh no! So sad :("
+	BodyParsingErrorText ErrorText = "Bad request."
 )
 
 const (
-	SomeInternalErrorCode ErrorCode = 80085
+	BodyParsingErrorCode ErrorCode = 80085
 )
