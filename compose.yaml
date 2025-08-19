@@ -1,0 +1,15 @@
+services:
+  astral:
+    build: .
+    restart: on-failure
+    ports:
+      - "3000:3000"
+  postgres:
+    image: postgres:17.5
+    restart: on-failure
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: astral
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: astral
