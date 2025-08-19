@@ -2,9 +2,9 @@ package controller
 
 type controller struct{}
 
-type service interface {
-	authService
-	docsService
+type usecase interface {
+	authUsecase
+	docsUsecase
 }
 
 func New() *controller {
