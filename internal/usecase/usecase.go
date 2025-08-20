@@ -15,6 +15,7 @@ type userRepository interface {
 	GetByLogin(login string) (user.User, error)
 	ValidatePassword(userID int, hashedPassword string) (bool, error)
 	SaveAuthToken(userID int, token string) error
+	DeleteToken(login string) (bool, error)
 }
 
 type usecase struct {

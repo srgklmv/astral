@@ -21,10 +21,11 @@ const (
 
 // Auth blocks.
 const (
-	RegisterBadLoginErrorText    ErrorText = "Login length must be between 8 and 20."
-	RegisterLoginTakenErrorText  ErrorText = "Login length must be between 8 and 20."
-	RegisterBadPasswordErrorText ErrorText = "Login length must be between 8 and 20, contains at least one upper and one lower case letter, one digit and one special symbol (!&*.,#@$)."
-	AuthWrongCredentials         ErrorText = "Wrong credentials."
+	RegisterBadLoginErrorText     ErrorText = "Login length must be between 8 and 20."
+	RegisterLoginTakenErrorText   ErrorText = "Login length must be between 8 and 20."
+	RegisterBadPasswordErrorText  ErrorText = "Login length must be between 8 and 20, contains at least one upper and one lower case letter, one digit and one special symbol (!&*.,#@$)."
+	AuthWrongCredentialsErrorText ErrorText = "Wrong credentials."
+	WrongAuthTokenErrorText       ErrorText = "Wrong token."
 )
 
 const (

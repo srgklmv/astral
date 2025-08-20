@@ -124,7 +124,7 @@ func (u usecase) Auth(login, password string) (dto.APIResponse[*dto.AuthResponse
 	if user.ID == 0 {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
 			Code: models.BadRequestErrorCode,
-			Text: models.AuthWrongCredentials,
+			Text: models.AuthWrongCredentialsErrorText,
 		}, nil, nil), http.StatusBadRequest
 	}
 
@@ -148,7 +148,7 @@ func (u usecase) Auth(login, password string) (dto.APIResponse[*dto.AuthResponse
 	if !valid {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
 			Code: models.BadRequestErrorCode,
-			Text: models.AuthWrongCredentials,
+			Text: models.AuthWrongCredentialsErrorText,
 		}, nil, nil), http.StatusBadRequest
 	}
 
@@ -177,7 +177,23 @@ func (u usecase) Auth(login, password string) (dto.APIResponse[*dto.AuthResponse
 	), http.StatusCreated
 }
 
-func (u usecase) Logout(token string) (dto.APIResponse[dto.LogoutResponse, any], int) {
+func (u usecase) Logout(token string) (dto.APIResponse[*dto.LogoutResponse, any], int) {
+	deleted, err := u.userRepository.DeleteToken(token)
+	if err != nil {
+		logger.Error("repository call error", slog.String("error", err.Error()))
+		return dto.NewAPIResponse[*dto.LogoutResponse, any](&dto.Error{
+			Code: models.RepositoryCallErrorCode,
+			Text: models.InternalErrorText,
+		}, nil, nil), http.StatusInternalServerError
+	}
+	if !deleted {
+		return dto.NewAPIResponse[*dto.LogoutResponse, any](&dto.Error{
+			Code: models.BadRequestErrorCode,
+			Text: models.WrongAuthTokenErrorText,
+		}, nil, nil), http.StatusBadRequest
+	}
 
-	panic("not implemented")
+	return dto.NewAPIResponse[*dto.LogoutResponse, any](nil, &dto.LogoutResponse{
+		token: true,
+	}, nil), http.StatusOK
 }
