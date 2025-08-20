@@ -11,6 +11,16 @@ import (
 
 type Config struct {
 	Database Database `json:"database"`
+	Modules  Modules  `json:"modules"`
+}
+
+type Modules struct {
+	Auth Auth `json:"auth"`
+}
+
+type Auth struct {
+	Salt      string `json:"salt"`
+	TokenSalt string `json:"tokenSalt"`
 }
 
 type Database struct {
@@ -21,11 +31,13 @@ type Database struct {
 	Name     string `json:"name"`
 }
 
-func New() (Config, error) {
+var Cfg Config
+
+func Init() error {
 	exec, err := os.Executable()
 	if err != nil {
 		logger.Error("new config error", slog.String("err", err.Error()))
-		return Config{}, err
+		return err
 	}
 
 	dir, _ := filepath.Split(exec)
@@ -34,17 +46,16 @@ func New() (Config, error) {
 	file, err := os.Open(configPath)
 	if err != nil {
 		logger.Error("open config file error", slog.String("err", err.Error()))
-		return Config{}, err
+		return err
 	}
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
-	cfg := Config{}
-	err = decoder.Decode(&cfg)
+	err = decoder.Decode(&Cfg)
 	if err != nil {
 		logger.Error("config decoding error", slog.String("err", err.Error()))
-		return Config{}, err
+		return err
 	}
 
-	return cfg, nil
+	return nil
 }

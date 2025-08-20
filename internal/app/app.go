@@ -7,6 +7,7 @@ import (
 	"github.com/srgklmv/astral/internal/api"
 	"github.com/srgklmv/astral/internal/config"
 	"github.com/srgklmv/astral/internal/controller"
+	"github.com/srgklmv/astral/internal/usecase"
 	"github.com/srgklmv/astral/pkg/logger"
 )
 
@@ -15,7 +16,6 @@ type app struct {
 }
 
 func New() *app {
-	// TODO: Add config.
 	return &app{
 		app: fiber.New(),
 	}
@@ -23,13 +23,15 @@ func New() *app {
 
 func (a *app) Run() error {
 	// TODO: Use config to connect shit.
-	_, err := config.New()
+	err := config.Init()
 	if err != nil {
 		logger.Error("config error while starting app", slog.String("err", err.Error()))
 		return err
 	}
 
-	controller := controller.New(nil)
+	repository := repository.New()
+	usecase := usecase.New(repository)
+	controller := controller.New(usecase)
 	api.SetRoutes(a.app, controller)
 
 	if err := a.app.Listen("0.0.0.0:3000"); err != nil {

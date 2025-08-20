@@ -10,9 +10,9 @@ import (
 )
 
 type authUsecase interface {
-	Register(token, login, password string) (dto.APIResponse[dto.RegisterResponse, any], int)
-	Auth(login, password string) (dto.APIResponse[dto.AuthResponse, any], int)
-	Logout(token string) (dto.APIResponse[dto.LogoutResponse, any], int)
+	Register(token, login, password string) (dto.APIResponse[*dto.RegisterResponse, any], int)
+	Auth(login, password string) (dto.APIResponse[*dto.AuthResponse, any], int)
+	Logout(token string) (dto.APIResponse[*dto.LogoutResponse, any], int)
 }
 
 func (c controller) Register(fc *fiber.Ctx) error {
