@@ -114,7 +114,7 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 }
 
 func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIResponse[*dto.AuthResponse, any], int) {
-	user, err := u.userRepository.GetByLogin(ctx, login)
+	user, err := u.userRepository.GetUserByLogin(ctx, login)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{

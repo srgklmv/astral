@@ -14,10 +14,10 @@ type userRepository interface {
 	IsLoginExists(ctx context.Context, login string) (bool, error)
 	IsAdminTokenValid(ctx context.Context, token string) (bool, error)
 	CreateUser(ctx context.Context, login, hashedPassword string, isAdmin bool) (user.User, error)
-	GetByLogin(ctx context.Context, login string) (user.User, error)
+	GetUserByLogin(ctx context.Context, login string) (user.User, error)
 	ValidatePassword(ctx context.Context, userID int, hashedPassword string) (bool, error)
 	SaveAuthToken(ctx context.Context, userID int, token string) error
-	DeleteToken(ctx context.Context, login string) (bool, error)
+	DeleteToken(ctx context.Context, token string) (bool, error)
 }
 
 type usecase struct {

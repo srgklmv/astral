@@ -20,25 +20,95 @@ func (r repository) IsLoginExists(ctx context.Context, login string) (bool, erro
 }
 
 func (r repository) IsAdminTokenValid(ctx context.Context, token string) (bool, error) {
-	panic("not implemented")
+	var t string
+
+	err := r.conn.QueryRowContext(ctx, `select value from secrets where name = 'admin_token'`).Scan(&t)
+	if err != nil {
+		logger.Error("QueryRowContext", slog.String("error", err.Error()))
+		return false, err
+	}
+
+	return t == token, nil
 }
 
 func (r repository) CreateUser(ctx context.Context, login, hashedPassword string, isAdmin bool) (user.User, error) {
-	panic("not implemented")
+	var user user.User
+
+	err := r.conn.QueryRowContext(
+		ctx,
+		`insert into "user"(login, password, is_admin) values ($1, $2, $3) returning id, login, is_admin`,
+		login,
+		hashedPassword,
+		isAdmin,
+	).Scan(&user.ID, &user.Login, &user.IsAdmin)
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return user, err
+	}
+
+	return user, nil
 }
 
-func (r repository) GetByLogin(ctx context.Context, login string) (user.User, error) {
-	panic("not implemented")
+func (r repository) GetUserByLogin(ctx context.Context, login string) (user.User, error) {
+	var user user.User
+
+	err := r.conn.QueryRowContext(
+		ctx,
+		`select id, login, is_admin from "user" where login = $1;`,
+		login,
+	).Scan(&user.ID, &user.Login, &user.IsAdmin)
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return user, err
+	}
+
+	return user, nil
 }
 
 func (r repository) ValidatePassword(ctx context.Context, userID int, hashedPassword string) (bool, error) {
-	panic("not implemented")
+	var isValid bool
+
+	err := r.conn.QueryRowContext(
+		ctx,
+		`select true from "user" where id = $1 and password = $2;`,
+		userID,
+		hashedPassword,
+	).Scan(&isValid)
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return false, err
+	}
+
+	return isValid, nil
 }
 
 func (r repository) SaveAuthToken(ctx context.Context, userID int, token string) error {
-	panic("not implemented")
+	err := r.conn.QueryRowContext(
+		ctx,
+		`insert into auth_token(token, user_id) values ($1, $2)`,
+		token,
+		userID,
+	).Err()
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return err
+	}
+
+	return nil
 }
 
-func (r repository) DeleteToken(ctx context.Context, login string) (bool, error) {
-	panic("not implemented")
+func (r repository) DeleteToken(ctx context.Context, token string) (bool, error) {
+	var deleted bool
+
+	err := r.conn.QueryRowContext(
+		ctx,
+		`delete from auth_token where token = $1 returning true`,
+		token,
+	).Scan(&deleted)
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return false, err
+	}
+
+	return deleted, nil
 }
