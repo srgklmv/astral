@@ -19,26 +19,26 @@ func (r repository) IsLoginExists(ctx context.Context, login string) (bool, erro
 	return exists, nil
 }
 
-func (r repository) IsAdminTokenValid(token string) (bool, error) {
+func (r repository) IsAdminTokenValid(ctx context.Context, token string) (bool, error) {
 	panic("not implemented")
 }
 
-func (r repository) CreateUser(login, hashedPassword string, isAdmin bool) (user.User, error) {
+func (r repository) CreateUser(ctx context.Context, login, hashedPassword string, isAdmin bool) (user.User, error) {
 	panic("not implemented")
 }
 
-func (r repository) GetByLogin(login string) (user.User, error) {
+func (r repository) GetByLogin(ctx context.Context, login string) (user.User, error) {
 	panic("not implemented")
 }
 
-func (r repository) ValidatePassword(userID int, hashedPassword string) (bool, error) {
+func (r repository) ValidatePassword(ctx context.Context, userID int, hashedPassword string) (bool, error) {
 	panic("not implemented")
 }
 
-func (r repository) SaveAuthToken(userID int, token string) error {
+func (r repository) SaveAuthToken(ctx context.Context, userID int, token string) error {
 	panic("not implemented")
 }
 
-func (r repository) DeleteToken(login string) (bool, error) {
+func (r repository) DeleteToken(ctx context.Context, login string) (bool, error) {
 	panic("not implemented")
 }

@@ -54,7 +54,7 @@ func Migrate(conn *sql.DB) error {
 		return err
 	}
 
-	err = m.Migrate(1)
+	err = m.Migrate(2)
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		logger.Error("migrations up error", slog.String("error", err.Error()))
 		return err

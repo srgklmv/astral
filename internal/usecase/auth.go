@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/srgklmv/astral/pkg/logger"
 )
 
-func (u usecase) Register(token, login, password string) (dto.APIResponse[*dto.RegisterResponse, any], int) {
+func (u usecase) Register(ctx context.Context, token, login, password string) (dto.APIResponse[*dto.RegisterResponse, any], int) {
 	matched, err := userDomain.ValidateLogin(login)
 	if err != nil {
 		logger.Error("login validation error", slog.String("error", err.Error()))
@@ -50,7 +51,7 @@ func (u usecase) Register(token, login, password string) (dto.APIResponse[*dto.R
 		), http.StatusBadRequest
 	}
 
-	taken, err := u.userRepository.IsLoginExists(login)
+	taken, err := u.userRepository.IsLoginExists(ctx, login)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
@@ -71,7 +72,7 @@ func (u usecase) Register(token, login, password string) (dto.APIResponse[*dto.R
 
 	var isAdmin bool
 	if token != "" {
-		isAdmin, err = u.userRepository.IsAdminTokenValid(token)
+		isAdmin, err = u.userRepository.IsAdminTokenValid(ctx, token)
 		if err != nil {
 			logger.Error("repository call error", slog.String("error", err.Error()))
 			return dto.NewAPIResponse[*dto.RegisterResponse, any](
@@ -94,7 +95,7 @@ func (u usecase) Register(token, login, password string) (dto.APIResponse[*dto.R
 		), http.StatusInternalServerError
 	}
 
-	user, err := u.userRepository.CreateUser(login, hashedPassword, isAdmin)
+	user, err := u.userRepository.CreateUser(ctx, login, hashedPassword, isAdmin)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
@@ -112,8 +113,8 @@ func (u usecase) Register(token, login, password string) (dto.APIResponse[*dto.R
 	), http.StatusCreated
 }
 
-func (u usecase) Auth(login, password string) (dto.APIResponse[*dto.AuthResponse, any], int) {
-	user, err := u.userRepository.GetByLogin(login)
+func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIResponse[*dto.AuthResponse, any], int) {
+	user, err := u.userRepository.GetByLogin(ctx, login)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
@@ -137,7 +138,7 @@ func (u usecase) Auth(login, password string) (dto.APIResponse[*dto.AuthResponse
 		}, nil, nil), http.StatusInternalServerError
 	}
 
-	valid, err := u.userRepository.ValidatePassword(user.ID, hashed)
+	valid, err := u.userRepository.ValidatePassword(ctx, user.ID, hashed)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
@@ -161,7 +162,7 @@ func (u usecase) Auth(login, password string) (dto.APIResponse[*dto.AuthResponse
 		}, nil, nil), http.StatusInternalServerError
 	}
 
-	err = u.userRepository.SaveAuthToken(user.ID, token)
+	err = u.userRepository.SaveAuthToken(ctx, user.ID, token)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
@@ -177,8 +178,8 @@ func (u usecase) Auth(login, password string) (dto.APIResponse[*dto.AuthResponse
 	), http.StatusCreated
 }
 
-func (u usecase) Logout(token string) (dto.APIResponse[*dto.LogoutResponse, any], int) {
-	deleted, err := u.userRepository.DeleteToken(token)
+func (u usecase) Logout(ctx context.Context, token string) (dto.APIResponse[*dto.LogoutResponse, any], int) {
+	deleted, err := u.userRepository.DeleteToken(ctx, token)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.LogoutResponse, any](&dto.Error{

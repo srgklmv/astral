@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,9 +11,9 @@ import (
 )
 
 type authUsecase interface {
-	Register(token, login, password string) (dto.APIResponse[*dto.RegisterResponse, any], int)
-	Auth(login, password string) (dto.APIResponse[*dto.AuthResponse, any], int)
-	Logout(token string) (dto.APIResponse[*dto.LogoutResponse, any], int)
+	Register(ctx context.Context, token, login, password string) (dto.APIResponse[*dto.RegisterResponse, any], int)
+	Auth(ctx context.Context, login, password string) (dto.APIResponse[*dto.AuthResponse, any], int)
+	Logout(ctx context.Context, token string) (dto.APIResponse[*dto.LogoutResponse, any], int)
 }
 
 func (c controller) Register(fc *fiber.Ctx) error {
@@ -26,7 +27,7 @@ func (c controller) Register(fc *fiber.Ctx) error {
 		}, nil, nil))
 	}
 
-	result, status := c.authUsecase.Register(request.Token, request.Login, request.Password)
+	result, status := c.authUsecase.Register(fc.Context(), request.Token, request.Login, request.Password)
 
 	return fc.Status(status).JSON(result)
 }
@@ -42,7 +43,7 @@ func (c controller) Auth(fc *fiber.Ctx) error {
 		}, nil, nil))
 	}
 
-	result, status := c.authUsecase.Auth(request.Login, request.Password)
+	result, status := c.authUsecase.Auth(fc.Context(), request.Login, request.Password)
 
 	return fc.Status(status).JSON(result)
 }
@@ -58,7 +59,7 @@ func (c controller) Logout(fc *fiber.Ctx) error {
 		}, nil, nil))
 	}
 
-	result, status := c.authUsecase.Logout(request.Token)
+	result, status := c.authUsecase.Logout(fc.Context(), request.Token)
 
 	return fc.Status(status).JSON(result)
 }

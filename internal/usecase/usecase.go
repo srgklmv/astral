@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"context"
+
 	"github.com/srgklmv/astral/internal/domain/user"
 )
 
@@ -9,13 +11,13 @@ type repository interface {
 }
 
 type userRepository interface {
-	IsLoginExists(login string) (bool, error)
-	IsAdminTokenValid(token string) (bool, error)
-	CreateUser(login, hashedPassword string, isAdmin bool) (user.User, error)
-	GetByLogin(login string) (user.User, error)
-	ValidatePassword(userID int, hashedPassword string) (bool, error)
-	SaveAuthToken(userID int, token string) error
-	DeleteToken(login string) (bool, error)
+	IsLoginExists(ctx context.Context, login string) (bool, error)
+	IsAdminTokenValid(ctx context.Context, token string) (bool, error)
+	CreateUser(ctx context.Context, login, hashedPassword string, isAdmin bool) (user.User, error)
+	GetByLogin(ctx context.Context, login string) (user.User, error)
+	ValidatePassword(ctx context.Context, userID int, hashedPassword string) (bool, error)
+	SaveAuthToken(ctx context.Context, userID int, token string) error
+	DeleteToken(ctx context.Context, login string) (bool, error)
 }
 
 type usecase struct {
