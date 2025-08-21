@@ -39,7 +39,7 @@ func New(host, port, database, user, password string) (*sql.DB, error) {
 	return conn, nil
 }
 
-func Migrate(conn *sql.DB) error {
+func Migrate(conn *sql.DB, path string, version int) error {
 	driver, err := postgres.WithInstance(conn, &postgres.Config{})
 	if err != nil {
 		logger.Error("migrations driver set up error", slog.String("error", err.Error()))
@@ -47,14 +47,14 @@ func Migrate(conn *sql.DB) error {
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
+		path,
 		"postgres", driver)
 	if err != nil {
 		logger.Error("migrate instance creation error", slog.String("error", err.Error()))
 		return err
 	}
 
-	err = m.Migrate(2)
+	err = m.Migrate(uint(version))
 	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
 		logger.Error("migrations up error", slog.String("error", err.Error()))
 		return err
