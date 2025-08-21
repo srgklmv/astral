@@ -12,7 +12,7 @@ type usecase interface {
 
 func New(usecase usecase) *controller {
 	return &controller{
-		//documentsUsecase: usecase,
-		//authUsecase:      usecase,
+		documentsUsecase: usecase,
+		authUsecase:      usecase,
 	}
 }

@@ -28,8 +28,7 @@ type documentsController interface {
 
 func SetRoutes(app *fiber.App, controller controller) {
 	app.Use(cors.New())
-	// You can add custom panic handler here if needed.
-	app.Use(recover.New())
+	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 
 	api := app.Group("api")
 

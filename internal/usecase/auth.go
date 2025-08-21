@@ -51,7 +51,7 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 		), http.StatusBadRequest
 	}
 
-	taken, err := u.userRepository.IsLoginExists(ctx, login)
+	isLoginTaken, err := u.userRepository.IsLoginExists(ctx, login)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
@@ -61,7 +61,7 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 			}, nil, nil,
 		), http.StatusInternalServerError
 	}
-	if taken {
+	if isLoginTaken {
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
 				Code: models.BadRequestErrorCode,
