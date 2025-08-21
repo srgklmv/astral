@@ -1,6 +1,7 @@
 package app
 
 import (
+	"database/sql"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,7 +15,8 @@ import (
 )
 
 type app struct {
-	app *fiber.App
+	app  *fiber.App
+	conn *sql.DB
 }
 
 func New() *app {
@@ -41,8 +43,13 @@ func (a *app) Run() error {
 		logger.Error("database error while starting app", slog.String("error", err.Error()))
 		return err
 	}
+	a.conn = conn
 
-	// TODO: Migrations
+	err = database.Migrate(conn)
+	if err != nil {
+		logger.Error("database migration error", slog.String("error", err.Error()))
+		return err
+	}
 
 	repository := repository.New(conn)
 	usecase := usecase.New(repository)
@@ -58,5 +65,9 @@ func (a *app) Run() error {
 }
 
 func (a *app) Shutdown() {
-
+	err := database.Shutdown(a.conn)
+	if err != nil {
+		logger.Error("database shutdown error", slog.String("error", err.Error()))
+	}
+	logger.Info("Shutting down database...")
 }

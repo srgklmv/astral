@@ -1,0 +1,28 @@
+CREATE TABLE IF NOT EXISTS "user" (
+    id SERIAL PRIMARY KEY,
+    login VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS auth_token (
+    token VARCHAR(255) PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS document (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    is_file BOOLEAN NOT NULL DEFAULT false,
+    is_public BOOLEAN NOT NULL DEFAULT false,
+    mimetype VARCHAR(100),
+    json JSONB,
+    file BYTEA,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    owner_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS user_document_access (
+    user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    document_id INTEGER NOT NULL REFERENCES document(id) ON DELETE CASCADE,
+    PRIMARY KEY (user_id, document_id)
+);

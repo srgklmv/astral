@@ -3,9 +3,13 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 
+	"github.com/golang-migrate/migrate/v4"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	"github.com/srgklmv/astral/pkg/logger"
 )
@@ -20,17 +24,45 @@ func New(host, port, database, user, password string) (*sql.DB, error) {
 		database,
 	)
 
-	db, err := sql.Open("postgres", data)
+	conn, err := sql.Open("postgres", data)
 	if err != nil {
 		logger.Error("connection to database failed", slog.String("error", err.Error()))
 		return nil, err
 	}
 
-	err = db.QueryRowContext(context.Background(), "select 1;").Err()
+	err = conn.QueryRowContext(context.Background(), "select 1;").Err()
 	if err != nil {
 		logger.Error("db test query failed", slog.String("error", err.Error()))
 		return nil, err
 	}
 
-	return db, nil
+	return conn, nil
+}
+
+func Migrate(conn *sql.DB) error {
+	driver, err := postgres.WithInstance(conn, &postgres.Config{})
+	if err != nil {
+		logger.Error("migrations driver set up error", slog.String("error", err.Error()))
+		return err
+	}
+
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
+		"postgres", driver)
+	if err != nil {
+		logger.Error("migrate instance creation error", slog.String("error", err.Error()))
+		return err
+	}
+
+	err = m.Migrate(1)
+	if err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		logger.Error("migrations up error", slog.String("error", err.Error()))
+		return err
+	}
+
+	return nil
+}
+
+func Shutdown(conn *sql.DB) error {
+	return conn.Close()
 }
