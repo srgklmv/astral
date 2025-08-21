@@ -17,8 +17,9 @@ type userRepository interface {
 	GetUserByLogin(ctx context.Context, login string) (user.User, error)
 	ValidatePassword(ctx context.Context, userID int, hashedPassword string) (bool, error)
 	SaveAuthToken(ctx context.Context, login, token string) error
-	DeleteToken(ctx context.Context, token string) (bool, error)
+	DeleteToken(ctx context.Context, token string) error
 	GetUserHashedPassword(ctx context.Context, login string) (string, error)
+	DeleteAllUserTokens(ctx context.Context, login string) error
 }
 
 type usecase struct {

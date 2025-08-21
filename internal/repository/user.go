@@ -98,20 +98,18 @@ func (r repository) SaveAuthToken(ctx context.Context, login, token string) erro
 	return nil
 }
 
-func (r repository) DeleteToken(ctx context.Context, token string) (bool, error) {
-	var deleted bool
-
+func (r repository) DeleteToken(ctx context.Context, token string) error {
 	err := r.conn.QueryRowContext(
 		ctx,
-		`delete from auth_token where token = $1 returning true`,
+		`delete from auth_token where token = $1 returning true;`,
 		token,
-	).Scan(&deleted)
+	).Err()
 	if err != nil {
 		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
-		return false, err
+		return err
 	}
 
-	return deleted, nil
+	return nil
 }
 
 func (r repository) GetUserHashedPassword(ctx context.Context, login string) (string, error) {
@@ -128,4 +126,18 @@ func (r repository) GetUserHashedPassword(ctx context.Context, login string) (st
 	}
 
 	return password, nil
+}
+
+func (r repository) DeleteAllUserTokens(ctx context.Context, login string) error {
+	err := r.conn.QueryRowContext(
+		ctx,
+		`delete from auth_token where user_login = $1;`,
+		login,
+	).Err()
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return err
+	}
+
+	return nil
 }

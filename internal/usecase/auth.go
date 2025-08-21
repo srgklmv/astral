@@ -157,12 +157,21 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 		}, nil, nil), http.StatusBadRequest
 	}
 
-	// TODO: Remove all other tokens.
+	err = u.userRepository.DeleteAllUserTokens(ctx, login)
+	if err != nil {
+		logger.Error("repository call error", slog.String("error", err.Error()))
+		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
+			Code: models.RepositoryCallErrorCode,
+			Text: models.InternalErrorText,
+		}, nil, nil), http.StatusInternalServerError
+	}
+
 	// TODO: Add caching.
 
 	token := userDomain.GenerateAuthToken()
 
 	err = u.userRepository.SaveAuthToken(ctx, login, token)
+
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
@@ -179,19 +188,14 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 }
 
 func (u usecase) Logout(ctx context.Context, token string) (dto.APIResponse[*dto.LogoutResponse, any], int) {
-	deleted, err := u.userRepository.DeleteToken(ctx, token)
+	// TODO: Add comparison to header token.
+	err := u.userRepository.DeleteToken(ctx, token)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.LogoutResponse, any](&dto.Error{
 			Code: models.RepositoryCallErrorCode,
 			Text: models.InternalErrorText,
 		}, nil, nil), http.StatusInternalServerError
-	}
-	if !deleted {
-		return dto.NewAPIResponse[*dto.LogoutResponse, any](&dto.Error{
-			Code: models.BadRequestErrorCode,
-			Text: models.WrongAuthTokenErrorText,
-		}, nil, nil), http.StatusBadRequest
 	}
 
 	return dto.NewAPIResponse[*dto.LogoutResponse, any](nil, &dto.LogoutResponse{
