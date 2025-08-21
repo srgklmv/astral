@@ -51,7 +51,7 @@ func ValidatePassword(password string) (bool, error) {
 	return matched1 && matched2 && matched3 && matched4 && matched5, nil
 }
 
-func HashPassword(password, salt string) (string, error) {
+func HashPassword(password string) (string, error) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		logger.Error("password hashing error", slog.String("error", err.Error()))
@@ -61,6 +61,6 @@ func HashPassword(password, salt string) (string, error) {
 	return string(hashed), nil
 }
 
-func ValidateHashedPassword(password, passwordFromDB, salt string) (bool, error) {
-	panic("not implemented")
+func IsValidPassword(password, hashedPassword string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) == nil
 }

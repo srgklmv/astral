@@ -1,5 +1,9 @@
 package user
 
-func GenerateAuthToken(userID int, hash string) (string, error) {
-	panic("not implemented")
+import (
+	"github.com/google/uuid"
+)
+
+func GenerateAuthToken() string {
+	return uuid.New().String()
 }

@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/srgklmv/astral/internal/config"
 	userDomain "github.com/srgklmv/astral/internal/domain/user"
 	"github.com/srgklmv/astral/internal/models"
 	"github.com/srgklmv/astral/internal/models/dto"
@@ -84,7 +83,7 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 		}
 	}
 
-	hashedPassword, err := userDomain.HashPassword(password, config.Cfg.Modules.Auth.Salt)
+	hashedPassword, err := userDomain.HashPassword(password)
 	if err != nil {
 		logger.Error("password hashing error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
@@ -114,7 +113,14 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 }
 
 func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIResponse[*dto.AuthResponse, any], int) {
-	user, err := u.userRepository.GetUserByLogin(ctx, login)
+	if login == "" || password == "" {
+		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
+			Code: models.BadRequestErrorCode,
+			Text: models.AuthWrongCredentialsErrorText,
+		}, nil, nil), http.StatusBadRequest
+	}
+
+	userExists, err := u.userRepository.IsLoginExists(ctx, login)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
@@ -122,23 +128,14 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 			Text: models.InternalErrorText,
 		}, nil, nil), http.StatusInternalServerError
 	}
-	if user.ID == 0 {
+	if !userExists {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
 			Code: models.BadRequestErrorCode,
 			Text: models.AuthWrongCredentialsErrorText,
 		}, nil, nil), http.StatusBadRequest
 	}
 
-	hashed, err := userDomain.HashPassword(password, config.Cfg.Modules.Auth.Salt)
-	if err != nil {
-		logger.Error("password hashing error", slog.String("error", err.Error()))
-		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.PasswordHashErrorCode,
-			Text: models.InternalErrorText,
-		}, nil, nil), http.StatusInternalServerError
-	}
-
-	valid, err := u.userRepository.ValidatePassword(ctx, user.ID, hashed)
+	hashed, err := u.userRepository.GetUserHashedPassword(ctx, login)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
@@ -146,23 +143,26 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 			Text: models.InternalErrorText,
 		}, nil, nil), http.StatusInternalServerError
 	}
-	if !valid {
+	if hashed == "" {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
 			Code: models.BadRequestErrorCode,
 			Text: models.AuthWrongCredentialsErrorText,
 		}, nil, nil), http.StatusBadRequest
 	}
 
-	token, err := userDomain.GenerateAuthToken(user.ID, config.Cfg.Modules.Auth.TokenSalt)
-	if err != nil {
-		logger.Error("token generation error", slog.String("error", err.Error()))
+	if !userDomain.IsValidPassword(password, hashed) {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.AuthTokenGenerationErrorCode,
-			Text: models.InternalErrorText,
-		}, nil, nil), http.StatusInternalServerError
+			Code: models.BadRequestErrorCode,
+			Text: models.AuthWrongCredentialsErrorText,
+		}, nil, nil), http.StatusBadRequest
 	}
 
-	err = u.userRepository.SaveAuthToken(ctx, user.ID, token)
+	// TODO: Remove all other tokens.
+	// TODO: Add caching.
+
+	token := userDomain.GenerateAuthToken()
+
+	err = u.userRepository.SaveAuthToken(ctx, login, token)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{

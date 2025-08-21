@@ -45,7 +45,7 @@ func (a *app) Run() error {
 	}
 	a.conn = conn
 
-	err = database.Migrate(conn, "file://migrations", 3)
+	err = database.Migrate(conn, "file://migrations", 4)
 	if err != nil {
 		logger.Error("database migration error", slog.String("error", err.Error()))
 		return err

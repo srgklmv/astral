@@ -19,8 +19,7 @@ type Modules struct {
 }
 
 type Auth struct {
-	Salt      string `json:"salt"`
-	TokenSalt string `json:"tokenSalt"`
+	Secret string `json:"tokenSalt"`
 }
 
 type Database struct {

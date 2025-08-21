@@ -11,9 +11,10 @@ import (
 func (r repository) IsLoginExists(ctx context.Context, login string) (bool, error) {
 	var exists bool
 
-	err := r.conn.QueryRowContext(ctx, `select true from users where login = $1`, login).Scan(&exists)
+	err := r.conn.QueryRowContext(ctx, `select coalesce((select true from "user" where login = $1), false);`, login).Scan(&exists)
 	if err != nil {
 		logger.Error("QueryRowContext", slog.String("error", err.Error()))
+		return false, err
 	}
 
 	return exists, nil
@@ -82,12 +83,12 @@ func (r repository) ValidatePassword(ctx context.Context, userID int, hashedPass
 	return isValid, nil
 }
 
-func (r repository) SaveAuthToken(ctx context.Context, userID int, token string) error {
+func (r repository) SaveAuthToken(ctx context.Context, login, token string) error {
 	err := r.conn.QueryRowContext(
 		ctx,
-		`insert into auth_token(token, user_id) values ($1, $2)`,
+		`insert into auth_token(token, user_login) values ($1, $2)`,
 		token,
-		userID,
+		login,
 	).Err()
 	if err != nil {
 		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
@@ -111,4 +112,20 @@ func (r repository) DeleteToken(ctx context.Context, token string) (bool, error)
 	}
 
 	return deleted, nil
+}
+
+func (r repository) GetUserHashedPassword(ctx context.Context, login string) (string, error) {
+	var password string
+
+	err := r.conn.QueryRowContext(
+		ctx,
+		`select password from "user" where login = $1;`,
+		login,
+	).Scan(&password)
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return "", err
+	}
+
+	return password, nil
 }
