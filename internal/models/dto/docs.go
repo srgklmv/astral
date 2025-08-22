@@ -2,9 +2,9 @@ package dto
 
 type (
 	UploadDocumentRequest struct {
-		Metadata UploadDocumentRequestMetadata
-		JSON     UploadDocumentRequestJSON
-		File     UploadDocumentRequestFile
+		Metadata string                    `form:"meta"`
+		JSON     string                    `form:"json"`
+		File     UploadDocumentRequestFile `form:"file"`
 	}
 	UploadDocumentRequestMetadata struct {
 		Name     string `json:"name"`
@@ -21,7 +21,7 @@ type (
 
 type UploadFileResponse struct {
 	JSON     map[string]any `json:"json,omitempty"`
-	FileName string         `json:"file"`
+	Filename string         `json:"file"`
 }
 
 type GetDocumentsResponse struct {

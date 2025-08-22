@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	userDomain "github.com/srgklmv/astral/internal/domain/user"
-	"github.com/srgklmv/astral/internal/models"
+	"github.com/srgklmv/astral/internal/models/apperrors"
 	"github.com/srgklmv/astral/internal/models/dto"
 	"github.com/srgklmv/astral/pkg/logger"
 )
@@ -17,16 +17,16 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 		logger.Error("login validation error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
-				Code: models.RegexErrorCode,
-				Text: models.InternalErrorText,
+				Code: apperrors.RegexErrorCode,
+				Text: apperrors.InternalErrorText,
 			}, nil, nil,
 		), http.StatusInternalServerError
 	}
 	if !matched {
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
-				Code: models.BadRequestErrorCode,
-				Text: models.RegisterBadLoginErrorText,
+				Code: apperrors.BadRequestErrorCode,
+				Text: apperrors.RegisterBadLoginErrorText,
 			}, nil, nil,
 		), http.StatusBadRequest
 	}
@@ -36,16 +36,16 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 		logger.Error("password validation error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
-				Code: models.RegexErrorCode,
-				Text: models.InternalErrorText,
+				Code: apperrors.RegexErrorCode,
+				Text: apperrors.InternalErrorText,
 			}, nil, nil,
 		), http.StatusInternalServerError
 	}
 	if !matched {
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
-				Code: models.BadRequestErrorCode,
-				Text: models.RegisterBadPasswordErrorText,
+				Code: apperrors.BadRequestErrorCode,
+				Text: apperrors.RegisterBadPasswordErrorText,
 			}, nil, nil,
 		), http.StatusBadRequest
 	}
@@ -55,16 +55,16 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
-				Code: models.RepositoryCallErrorCode,
-				Text: models.InternalErrorText,
+				Code: apperrors.RepositoryCallErrorCode,
+				Text: apperrors.InternalErrorText,
 			}, nil, nil,
 		), http.StatusInternalServerError
 	}
 	if isLoginTaken {
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
-				Code: models.BadRequestErrorCode,
-				Text: models.RegisterLoginTakenErrorText,
+				Code: apperrors.BadRequestErrorCode,
+				Text: apperrors.RegisterLoginTakenErrorText,
 			}, nil, nil,
 		), http.StatusBadRequest
 	}
@@ -76,8 +76,8 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 			logger.Error("repository call error", slog.String("error", err.Error()))
 			return dto.NewAPIResponse[*dto.RegisterResponse, any](
 				&dto.Error{
-					Code: models.RepositoryCallErrorCode,
-					Text: models.InternalErrorText,
+					Code: apperrors.RepositoryCallErrorCode,
+					Text: apperrors.InternalErrorText,
 				}, nil, nil,
 			), http.StatusInternalServerError
 		}
@@ -88,8 +88,8 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 		logger.Error("password hashing error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
-				Code: models.PasswordHashErrorCode,
-				Text: models.InternalErrorText,
+				Code: apperrors.PasswordHashErrorCode,
+				Text: apperrors.InternalErrorText,
 			}, nil, nil,
 		), http.StatusInternalServerError
 	}
@@ -99,8 +99,8 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.RegisterResponse, any](
 			&dto.Error{
-				Code: models.RepositoryCallErrorCode,
-				Text: models.InternalErrorText,
+				Code: apperrors.RepositoryCallErrorCode,
+				Text: apperrors.InternalErrorText,
 			}, nil, nil,
 		), http.StatusInternalServerError
 	}
@@ -115,8 +115,8 @@ func (u usecase) Register(ctx context.Context, token, login, password string) (d
 func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIResponse[*dto.AuthResponse, any], int) {
 	if login == "" || password == "" {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.BadRequestErrorCode,
-			Text: models.AuthWrongCredentialsErrorText,
+			Code: apperrors.BadRequestErrorCode,
+			Text: apperrors.AuthWrongCredentialsErrorText,
 		}, nil, nil), http.StatusBadRequest
 	}
 
@@ -124,14 +124,14 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.RepositoryCallErrorCode,
-			Text: models.InternalErrorText,
+			Code: apperrors.RepositoryCallErrorCode,
+			Text: apperrors.InternalErrorText,
 		}, nil, nil), http.StatusInternalServerError
 	}
 	if !userExists {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.BadRequestErrorCode,
-			Text: models.AuthWrongCredentialsErrorText,
+			Code: apperrors.BadRequestErrorCode,
+			Text: apperrors.AuthWrongCredentialsErrorText,
 		}, nil, nil), http.StatusBadRequest
 	}
 
@@ -139,21 +139,21 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.RepositoryCallErrorCode,
-			Text: models.InternalErrorText,
+			Code: apperrors.RepositoryCallErrorCode,
+			Text: apperrors.InternalErrorText,
 		}, nil, nil), http.StatusInternalServerError
 	}
 	if hashed == "" {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.BadRequestErrorCode,
-			Text: models.AuthWrongCredentialsErrorText,
+			Code: apperrors.BadRequestErrorCode,
+			Text: apperrors.AuthWrongCredentialsErrorText,
 		}, nil, nil), http.StatusBadRequest
 	}
 
 	if !userDomain.IsValidPassword(password, hashed) {
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.BadRequestErrorCode,
-			Text: models.AuthWrongCredentialsErrorText,
+			Code: apperrors.BadRequestErrorCode,
+			Text: apperrors.AuthWrongCredentialsErrorText,
 		}, nil, nil), http.StatusBadRequest
 	}
 
@@ -161,8 +161,8 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.RepositoryCallErrorCode,
-			Text: models.InternalErrorText,
+			Code: apperrors.RepositoryCallErrorCode,
+			Text: apperrors.InternalErrorText,
 		}, nil, nil), http.StatusInternalServerError
 	}
 
@@ -175,8 +175,8 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
-			Code: models.RepositoryCallErrorCode,
-			Text: models.InternalErrorText,
+			Code: apperrors.RepositoryCallErrorCode,
+			Text: apperrors.InternalErrorText,
 		}, nil, nil), http.StatusInternalServerError
 	}
 
@@ -193,12 +193,26 @@ func (u usecase) Logout(ctx context.Context, token string) (dto.APIResponse[*dto
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.LogoutResponse, any](&dto.Error{
-			Code: models.RepositoryCallErrorCode,
-			Text: models.InternalErrorText,
+			Code: apperrors.RepositoryCallErrorCode,
+			Text: apperrors.InternalErrorText,
 		}, nil, nil), http.StatusInternalServerError
 	}
 
 	return dto.NewAPIResponse[*dto.LogoutResponse, any](nil, &dto.LogoutResponse{
 		token: true,
 	}, nil), http.StatusOK
+}
+
+func (u usecase) validateAuthToken(ctx context.Context, token string) (bool, string, error) {
+	if token == "" {
+		return false, "", nil
+	}
+
+	login, err := u.userRepository.GetUserLoginByAuthToken(ctx, token)
+	if err != nil {
+		logger.Error("repository call error", slog.String("error", err.Error()))
+		return false, "", err
+	}
+
+	return login != "", login, nil
 }

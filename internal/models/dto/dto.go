@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"github.com/srgklmv/astral/internal/models"
+	"github.com/srgklmv/astral/internal/models/apperrors"
 )
 
 // TODO: Check init values Error struct in APIResponse.
@@ -12,8 +12,8 @@ type APIResponse[Response, Data any] struct {
 }
 
 type Error struct {
-	Code models.ErrorCode `json:"code"`
-	Text models.ErrorText `json:"text"`
+	Code apperrors.ErrorCode `json:"code"`
+	Text apperrors.ErrorText `json:"text"`
 }
 
 // TODO: Check if nil Error value is ok not to return it in response.

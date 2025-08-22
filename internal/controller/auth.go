@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/srgklmv/astral/internal/models"
+	"github.com/srgklmv/astral/internal/models/apperrors"
 	"github.com/srgklmv/astral/internal/models/dto"
 	"github.com/srgklmv/astral/pkg/logger"
 )
@@ -22,8 +22,8 @@ func (c controller) Register(fc *fiber.Ctx) error {
 	if err != nil {
 		logger.Error("request parsing error", slog.String("error", err.Error()))
 		return fc.JSON(dto.NewAPIResponse[any, any](&dto.Error{
-			Code: models.BodyParsingErrorCode,
-			Text: models.BodyParsingErrorText,
+			Code: apperrors.BodyParsingErrorCode,
+			Text: apperrors.BodyParsingErrorText,
 		}, nil, nil))
 	}
 
@@ -38,8 +38,8 @@ func (c controller) Auth(fc *fiber.Ctx) error {
 	if err != nil {
 		logger.Error("request parsing error", slog.String("error", err.Error()))
 		return fc.JSON(dto.NewAPIResponse[any, any](&dto.Error{
-			Code: models.BodyParsingErrorCode,
-			Text: models.BodyParsingErrorText,
+			Code: apperrors.BodyParsingErrorCode,
+			Text: apperrors.BodyParsingErrorText,
 		}, nil, nil))
 	}
 
@@ -54,8 +54,8 @@ func (c controller) Logout(fc *fiber.Ctx) error {
 	if err != nil {
 		logger.Error("request parsing error", slog.String("error", err.Error()))
 		return fc.JSON(dto.NewAPIResponse[any, any](&dto.Error{
-			Code: models.BodyParsingErrorCode,
-			Text: models.BodyParsingErrorText,
+			Code: apperrors.BodyParsingErrorCode,
+			Text: apperrors.BodyParsingErrorText,
 		}, nil, nil))
 	}
 

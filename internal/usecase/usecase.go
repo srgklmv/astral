@@ -1,13 +1,20 @@
 package usecase
 
 import (
+	"bytes"
 	"context"
 
+	"github.com/srgklmv/astral/internal/domain/document"
 	"github.com/srgklmv/astral/internal/domain/user"
 )
 
 type repository interface {
 	userRepository
+	documentRepository
+}
+
+type documentRepository interface {
+	UploadDocument(ctx context.Context, login, filename string, isFile bool, mimetype string, isPublic bool, grantedTo []string, json map[string]any, file *bytes.Buffer) (document.Document, error)
 }
 
 type userRepository interface {
@@ -20,14 +27,18 @@ type userRepository interface {
 	DeleteToken(ctx context.Context, token string) error
 	GetUserHashedPassword(ctx context.Context, login string) (string, error)
 	DeleteAllUserTokens(ctx context.Context, login string) error
+	IsAuthTokenExists(ctx context.Context, token string) (bool, error)
+	GetUserLoginByAuthToken(ctx context.Context, token string) (string, error)
 }
 
 type usecase struct {
-	userRepository userRepository
+	userRepository     userRepository
+	documentRepository documentRepository
 }
 
 func New(repository repository) *usecase {
 	return &usecase{
-		userRepository: repository,
+		userRepository:     repository,
+		documentRepository: repository,
 	}
 }
