@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS auth_token (
 );
 
 CREATE TABLE IF NOT EXISTS document (
-    id SERIAL PRIMARY KEY,
+    id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid()::varchar,
     name VARCHAR(255) NOT NULL,
     is_file BOOLEAN NOT NULL DEFAULT false,
     is_public BOOLEAN NOT NULL DEFAULT false,
@@ -23,6 +23,6 @@ CREATE TABLE IF NOT EXISTS document (
 
 CREATE TABLE IF NOT EXISTS user_document_access (
     user_id INTEGER NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    document_id INTEGER NOT NULL REFERENCES document(id) ON DELETE CASCADE,
+    document_id VARCHAR NOT NULL REFERENCES document(id) ON DELETE CASCADE,
     PRIMARY KEY (user_id, document_id)
 );

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/srgklmv/astral/internal/domain/document"
 	"github.com/srgklmv/astral/internal/domain/user"
 )
@@ -15,6 +16,8 @@ type repository interface {
 
 type documentRepository interface {
 	UploadDocument(ctx context.Context, login, filename string, isFile bool, mimetype string, isPublic bool, grantedTo []string, json map[string]any, file *bytes.Buffer) (document.Document, error)
+	DeleteDocument(ctx context.Context, id uuid.UUID) error
+	GetDocument(ctx context.Context, id uuid.UUID) (document.Document, error)
 }
 
 type userRepository interface {

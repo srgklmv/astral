@@ -26,6 +26,7 @@ const (
 	RegisterBadPasswordErrorText  ErrorText = "Password length must be between 8 and 20, contains at least one upper and one lower case letter, one digit and one special symbol (!&*.,#@$)."
 	AuthWrongCredentialsErrorText ErrorText = "Wrong credentials."
 	UnauthorizedErrorText         ErrorText = "Unauthorized."
+	ForbiddenErrorText            ErrorText = "Access forbidden."
 )
 
 const (
@@ -33,13 +34,16 @@ const (
 	AuthWrongLoginErrorCode
 	AuthTokenGenerationErrorCode
 	UnauthorizedErrorCode
+	ForbiddenErrorCode
 )
 
 // Document blocks.
 const (
-	InvalidFileNameErrorText ErrorText = "Invalid file name."
-	InvalidMimeTypeErrorText ErrorText = "Invalid mime type."
-	EmptyFileErrorText       ErrorText = "Empty file."
+	InvalidFileNameErrorText       ErrorText = "Invalid file name."
+	InvalidMimeTypeErrorText       ErrorText = "Invalid mime type."
+	DocumentIDNotProvidedErrorText ErrorText = "No document ID provided."
+	DocumentNotFoundErrorText      ErrorText = "Document not found."
+	BadIDProvidedErrorText         ErrorText = "Invalid document ID."
 )
 
 const (

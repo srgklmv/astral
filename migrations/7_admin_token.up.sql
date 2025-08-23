@@ -1,0 +1,1 @@
+INSERT INTO secrets(name, value) VALUES ('admin_token', 'test');

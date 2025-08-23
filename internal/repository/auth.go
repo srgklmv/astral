@@ -28,7 +28,7 @@ func (r repository) GetUserLoginByAuthToken(ctx context.Context, token string) (
 
 	err := r.conn.QueryRowContext(
 		ctx,
-		`select user_login from auth_token where token = $1;`,
+		`select coalesce((select user_login from auth_token where token = $1), '');`,
 		token,
 	).Scan(&login)
 	if err != nil {

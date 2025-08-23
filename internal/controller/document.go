@@ -107,5 +107,18 @@ func (c controller) GetDocumentHead(fc *fiber.Ctx) error {
 }
 
 func (c controller) DeleteDocument(fc *fiber.Ctx) error {
-	panic("not implemented")
+	documentID := fc.Params("id")
+
+	var request dto.DeleteDocumentRequest
+	err := fc.BodyParser(&request)
+	if err != nil {
+		return fc.Status(http.StatusBadRequest).JSON(dto.NewAPIResponse[any, any](&dto.Error{
+			Code: apperrors.BadRequestErrorCode,
+			Text: apperrors.BodyParsingErrorText,
+		}, nil, nil))
+	}
+
+	response, status := c.documentsUsecase.DeleteDocument(fc.Context(), request.Token, documentID)
+
+	return fc.Status(status).JSON(response)
 }

@@ -42,4 +42,9 @@ type Document struct {
 // TODO: Is it possible, to avoid any here? JSON of file returned.
 type GetDocumentResponse any
 
-type DeleteDocumentResponse map[string]bool
+type (
+	DeleteDocumentRequest struct {
+		Token string `json:"token"`
+	}
+	DeleteDocumentResponse map[string]bool
+)

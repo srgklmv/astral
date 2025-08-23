@@ -203,12 +203,12 @@ func (u usecase) Logout(ctx context.Context, token string) (dto.APIResponse[*dto
 	}, nil), http.StatusOK
 }
 
-func (u usecase) validateAuthToken(ctx context.Context, token string) (bool, string, error) {
+func (u usecase) validateAuthToken(ctx context.Context, token string) (isValid bool, login string, err error) {
 	if token == "" {
 		return false, "", nil
 	}
 
-	login, err := u.userRepository.GetUserLoginByAuthToken(ctx, token)
+	login, err = u.userRepository.GetUserLoginByAuthToken(ctx, token)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return false, "", err

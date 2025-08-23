@@ -3,9 +3,12 @@ package repository
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
+	"errors"
 	"log/slog"
 
+	"github.com/google/uuid"
 	"github.com/srgklmv/astral/internal/domain/document"
 	"github.com/srgklmv/astral/pkg/logger"
 )
@@ -21,6 +24,7 @@ func (r repository) UploadDocument(
 	file *bytes.Buffer,
 ) (document.Document, error) {
 	var doc document.Document
+	var id uuid.UUID
 
 	jsonb, err := json.Marshal(jsonM)
 	if err != nil {
@@ -59,7 +63,7 @@ func (r repository) UploadDocument(
 		jsonb,
 		file.Bytes(),
 		login,
-	).Scan(&doc.ID, &jsonb, &doc.Filename)
+	).Scan(&id, &jsonb, &doc.Filename)
 	if err != nil {
 		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
 		return document.Document{}, err
@@ -70,7 +74,7 @@ func (r repository) UploadDocument(
 			ctx,
 			`insert into user_document_access (user_login, document_id) values ($1, $2);`,
 			grantedToLogin,
-			doc.ID,
+			id,
 		).Err()
 		if err != nil {
 			// TODO: Add validation for granted to logins.
@@ -86,7 +90,63 @@ func (r repository) UploadDocument(
 	}
 
 	doc.JSON = jsonM
-	doc.ID = 0
+
+	return doc, nil
+}
+
+func (r repository) DeleteDocument(ctx context.Context, id uuid.UUID) error {
+	_, err := r.conn.ExecContext(
+		ctx,
+		`delete from document where id=$1;`,
+		id.String(),
+	)
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return err
+	}
+
+	return nil
+}
+
+func (r repository) GetDocument(ctx context.Context, id uuid.UUID) (document.Document, error) {
+	var doc document.Document
+	var uid string
+	var jsonb, owners []byte
+
+	err := r.conn.QueryRowContext(
+		ctx,
+		`select d.id, d.name, d.is_file, d.is_public, d.mimetype, d.json, d.file, d.created_at, d.owner_login, to_json(array_agg(uda.user_login)) as owners
+		from document d
+		left join public.user_document_access uda on d.id = uda.document_id
+		where d.id = $1
+		group by d.id;`,
+		id.String(),
+	).Scan(&uid, &doc.Filename, &doc.IsFile, &doc.IsPublic, &doc.Mimetype, &jsonb, &doc.File, &doc.CreatedAt, &doc.Owner, &owners)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return doc, err
+	}
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return doc, err
+	}
+
+	err = json.Unmarshal(jsonb, &doc.JSON)
+	if err != nil {
+		logger.Error("Unmarshal error", slog.String("error", err.Error()))
+		return doc, err
+	}
+
+	err = json.Unmarshal(owners, &doc.GrantedTo)
+	if err != nil {
+		logger.Error("Unmarshal error", slog.String("error", err.Error()))
+		return doc, err
+	}
+
+	doc.ID, err = uuid.Parse(uid)
+	if err != nil {
+		logger.Error("uuid.FromBytes error", slog.String("error", err.Error()))
+		return doc, err
+	}
 
 	return doc, nil
 }

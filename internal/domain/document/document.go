@@ -2,10 +2,12 @@ package document
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Document struct {
-	ID        int
+	ID        uuid.UUID
 	Filename  string
 	IsPublic  bool
 	IsFile    bool
@@ -14,4 +16,5 @@ type Document struct {
 	CreatedAt time.Time
 	JSON      map[string]any
 	File      []byte
+	Owner     string
 }
