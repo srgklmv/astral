@@ -5,6 +5,7 @@ import (
 )
 
 type Document struct {
+	ID        int
 	Filename  string
 	IsPublic  bool
 	IsFile    bool

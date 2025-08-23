@@ -46,7 +46,7 @@ func (a *app) Run() error {
 	a.conn = conn
 
 	// TODO: Migrations to cfg.
-	err = database.Migrate(conn, "file://migrations", 5)
+	err = database.Migrate(conn, "file://migrations", 6)
 	if err != nil {
 		logger.Error("database migration error", slog.String("error", err.Error()))
 		return err
