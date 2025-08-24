@@ -66,3 +66,17 @@ func Migrate(conn *sql.DB, path string, version int) error {
 func Shutdown(conn *sql.DB) error {
 	return conn.Close()
 }
+
+func SeedAdminToken(conn *sql.DB, adminToken string) error {
+	err := conn.QueryRowContext(
+		context.Background(),
+		"insert into secrets (name, value) values ('admin_token', $1) on conflict (name) do update set value = $1;",
+		adminToken,
+	).Err()
+	if err != nil {
+		logger.Error("db admin seeding failed", slog.String("error", err.Error()))
+		return err
+	}
+
+	return nil
+}

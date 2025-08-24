@@ -31,13 +31,13 @@ func (r repository) UploadDocument(
 	jsonb, err := json.Marshal(jsonM)
 	if err != nil {
 		logger.Error("json.Marshal error", slog.String("error", err.Error()))
-		return document.Document{}, err
+		return doc, err
 	}
 
 	tx, err := r.conn.BeginTx(ctx, nil)
 	if err != nil {
 		logger.Error("database transaction error", slog.String("error", err.Error()))
-		return document.Document{}, err
+		return doc, err
 	}
 
 	defer func() {
@@ -68,7 +68,7 @@ func (r repository) UploadDocument(
 	).Scan(&id, &jsonb, &doc.Filename)
 	if err != nil {
 		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
-		return document.Document{}, err
+		return doc, err
 	}
 
 	for _, grantedToLogin := range grantedTo {
@@ -81,14 +81,14 @@ func (r repository) UploadDocument(
 		if err != nil {
 			// TODO: Add validation for granted to logins.
 			logger.Error("QueryRowContext error", slog.String("error", err.Error()))
-			return document.Document{}, err
+			return doc, err
 		}
 	}
 
 	err = json.Unmarshal(jsonb, &jsonM)
 	if err != nil {
 		logger.Error("Unmarshal error", slog.String("error", err.Error()))
-		return document.Document{}, err
+		return doc, err
 	}
 
 	doc.JSON = jsonM

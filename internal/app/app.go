@@ -52,6 +52,12 @@ func (a *app) Run() error {
 		return err
 	}
 
+	err = database.SeedAdminToken(conn, config.Cfg.Modules.Auth.AdminToken)
+	if err != nil {
+		logger.Error("SeedAdminToken error", slog.String("error", err.Error()))
+		return err
+	}
+
 	repository := repository.New(conn)
 	usecase := usecase.New(repository)
 	controller := controller.New(usecase)
