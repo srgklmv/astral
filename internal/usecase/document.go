@@ -87,6 +87,16 @@ func (u usecase) GetDocuments(ctx context.Context, request dto.GetDocumentsReque
 		}, nil, nil), http.StatusUnauthorized
 	}
 
+	request, isValid, errText := u.validateGetDocumentsRequest(request)
+	if !isValid {
+		return dto.NewAPIResponse[any, *dto.GetDocumentsResponse](&dto.Error{
+			Code: apperrors.AuthInternalErrorCode,
+			Text: errText,
+		}, nil, nil), http.StatusInternalServerError
+	}
+
+	// Strict passing dto into repository is not kinda safe, but
+	// $ symbol doing things.
 	documents, err := u.documentRepository.GetDocumentsData(
 		ctx,
 		user.Login,
@@ -266,4 +276,12 @@ func (u usecase) validateDocumentMetadata(metadata dto.UploadDocumentRequestMeta
 	default:
 		return true, ""
 	}
+}
+
+func (u usecase) validateGetDocumentsRequest(request dto.GetDocumentsRequest) (dto.GetDocumentsRequest, bool, apperrors.ErrorText) {
+	if request.Limit == 0 {
+		request.Limit = 10
+	}
+
+	return request, true, ""
 }
