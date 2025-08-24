@@ -6,7 +6,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/srgklmv/astral/internal/domain/document"
@@ -149,4 +151,80 @@ func (r repository) GetDocument(ctx context.Context, id uuid.UUID) (document.Doc
 	}
 
 	return doc, nil
+}
+
+func (r repository) GetDocumentsData(ctx context.Context, userLogin string, isAdmin bool, login, key, value string, limit int) (document.DocumentsData, error) {
+	query := []string{
+		`select d.id, d.name, d.is_file, d.is_public, d.mimetype, d.created_at, to_json(array_agg(uda.user_login)) as owners
+		from document d
+		left join user_document_access uda on d.id = uda.document_id`,
+		`where`,
+	}
+	var args []any
+
+	switch {
+	case login == "":
+		query = append(query, `(d.owner_login = $1 or uda.user_login = $1)`)
+		args = append(args, userLogin)
+	case isAdmin:
+		query = append(query, `(d.owner_login = $1 or uda.user_login = $1)`)
+		args = append(args, login)
+	default:
+		query = append(query, `(d.owner_login = $1 or uda.user_login = $1) and 
+			(d.is_public or d.owner_login = $2 or uda.user_login = $2)`)
+		args = append(args, login, userLogin)
+	}
+
+	if key != "" {
+		query = append(query, `and`)
+		query = append(query, fmt.Sprintf(`(d.%s = $%d)`, key, len(args)+1))
+		args = append(args, value)
+	}
+
+	query = append(
+		query,
+		`group by d.id, d.name, d.created_at
+		order by d.name ASC, d.created_at ASC`,
+	)
+	query = append(query, fmt.Sprintf("limit $%d", len(args)+1))
+	args = append(args, limit)
+
+	q := strings.Join(query, " ")
+	var docs document.DocumentsData
+
+	rows, err := r.conn.QueryContext(ctx, q, args...)
+	if err != nil {
+		logger.Error("QueryContext error", slog.String("error", err.Error()))
+		return docs, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var doc document.Data
+		var buf []byte
+
+		err = rows.Scan(
+			&doc.ID,
+			&doc.Filename,
+			&doc.IsFile,
+			&doc.IsPublic,
+			&doc.Mimetype,
+			&doc.CreatedAt,
+			&buf,
+		)
+		if err != nil {
+			logger.Error("QueryContext error", slog.String("error", err.Error()))
+			return docs, err
+		}
+
+		err = json.Unmarshal(buf, &doc.GrantedTo)
+		if err != nil {
+			logger.Error("Unmarshal error", slog.String("error", err.Error()))
+			return docs, err
+		}
+
+		docs = append(docs, doc)
+	}
+
+	return docs, nil
 }

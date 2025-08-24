@@ -35,6 +35,7 @@ const (
 	AuthTokenGenerationErrorCode
 	UnauthorizedErrorCode
 	ForbiddenErrorCode
+	AuthInternalErrorCode
 )
 
 // Document blocks.

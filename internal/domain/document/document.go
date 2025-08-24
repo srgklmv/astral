@@ -7,6 +7,12 @@ import (
 )
 
 type Document struct {
+	Data
+	JSON map[string]any
+	File []byte
+}
+
+type Data struct {
 	ID        uuid.UUID
 	Filename  string
 	IsPublic  bool
@@ -14,7 +20,7 @@ type Document struct {
 	Mimetype  string
 	GrantedTo []string
 	CreatedAt time.Time
-	JSON      map[string]any
-	File      []byte
 	Owner     string
 }
+
+type DocumentsData []Data

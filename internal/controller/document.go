@@ -18,7 +18,7 @@ import (
 
 type documentsUsecase interface {
 	UploadDocument(ctx context.Context, token string, meta dto.UploadDocumentRequestMetadata, json dto.UploadDocumentRequestJSON, file *bytes.Buffer) (dto.APIResponse[any, *dto.UploadFileResponse], int)
-	GetDocuments(ctx context.Context, token, login, filterKey, filterValue string, limit int) (dto.APIResponse[any, *dto.GetDocumentsResponse], int)
+	GetDocuments(ctx context.Context, request dto.GetDocumentsRequest) (dto.APIResponse[any, *dto.GetDocumentsResponse], int)
 	GetDocument(ctx context.Context, token, id string) (dto.APIResponse[any, any], []byte, map[string]string, int)
 	DeleteDocument(ctx context.Context, token, id string) (dto.APIResponse[any, *dto.DeleteDocumentResponse], int)
 }
@@ -92,7 +92,19 @@ func (c controller) UploadDocument(fc *fiber.Ctx) error {
 }
 
 func (c controller) GetDocuments(fc *fiber.Ctx) error {
-	panic("not implemented")
+	var request dto.GetDocumentsRequest
+
+	err := fc.BodyParser(&request)
+	if err != nil {
+		return fc.Status(http.StatusBadRequest).JSON(dto.NewAPIResponse[any, *dto.GetDocumentsResponse](&dto.Error{
+			Code: apperrors.BodyParsingErrorCode,
+			Text: apperrors.BodyParsingErrorText,
+		}, nil, nil))
+	}
+
+	result, status := c.documentsUsecase.GetDocuments(fc.Context(), request)
+
+	return fc.Status(status).JSON(result)
 }
 
 func (c controller) GetDocument(fc *fiber.Ctx) error {

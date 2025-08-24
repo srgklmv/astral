@@ -1,5 +1,11 @@
 package dto
 
+import (
+	"time"
+
+	"github.com/srgklmv/astral/internal/domain/document"
+)
+
 type (
 	UploadDocumentRequest struct {
 		Metadata string                    `form:"meta"`
@@ -24,22 +30,51 @@ type UploadFileResponse struct {
 	Filename string         `json:"file"`
 }
 
-type GetDocumentsResponse struct {
-	Documents []Document `json:"docs"`
+type (
+	GetDocumentsRequest struct {
+		Token string `json:"token"`
+		Login string `json:"login"`
+		Key   string `json:"key"`
+		Value string `json:"value"`
+		Limit int    `json:"limit"`
+	}
+	GetDocumentsResponse struct {
+		DocumentsData []DocumentData `json:"docs"`
+	}
+)
+
+func NewGetDocumentsResponse() GetDocumentsResponse {
+	return GetDocumentsResponse{
+		DocumentsData: make([]DocumentData, 0),
+	}
 }
 
-// TODO: Add bytes here.
-type Document struct {
+func (r GetDocumentsResponse) FromDomain(data document.DocumentsData) GetDocumentsResponse {
+	for _, v := range data {
+		r.DocumentsData = append(r.DocumentsData, DocumentData{
+			ID:        v.ID.String(),
+			Name:      v.Filename,
+			IsFile:    v.IsFile,
+			IsPublic:  v.IsPublic,
+			Mimetype:  v.Mimetype,
+			CreatedAt: v.CreatedAt.Format(time.DateTime),
+			GrantedTo: v.GrantedTo,
+		})
+	}
+
+	return r
+}
+
+type DocumentData struct {
 	ID        string   `json:"id"`
 	Name      string   `json:"name"`
 	IsFile    bool     `json:"file"`
 	IsPublic  bool     `json:"public"`
-	Mimetype  string   `json:"mime"`
+	Mimetype  string   `json:"mime,omitempty"`
 	CreatedAt string   `json:"created"`
-	GrantedTo []string `json:"grant"`
+	GrantedTo []string `json:"grant,omitempty"`
 }
 
-// TODO: Is it possible, to avoid any here? JSON of file returned.
 type (
 	GetDocumentRequest struct {
 		Token string `json:"token"`

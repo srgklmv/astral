@@ -38,7 +38,7 @@ func SetRoutes(app *fiber.App, controller controller) {
 	docs.Post("", controller.UploadDocument)
 	docs.Get("/:id", controller.GetDocument)
 	docs.Head("/:id", controller.GetDocument)
-	docs.Get("", controller.GetDocument)
+	docs.Get("", controller.GetDocuments)
 	docs.Head("", controller.GetDocuments)
 	docs.Delete("/:id", controller.DeleteDocument)
 }

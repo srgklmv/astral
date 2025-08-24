@@ -18,6 +18,7 @@ type documentRepository interface {
 	UploadDocument(ctx context.Context, login, filename string, isFile bool, mimetype string, isPublic bool, grantedTo []string, json map[string]any, file *bytes.Buffer) (document.Document, error)
 	DeleteDocument(ctx context.Context, id uuid.UUID) error
 	GetDocument(ctx context.Context, id uuid.UUID) (document.Document, error)
+	GetDocumentsData(ctx context.Context, userLogin string, isAdmin bool, login, key, value string, limit int) (document.DocumentsData, error)
 }
 
 type userRepository interface {
@@ -30,7 +31,6 @@ type userRepository interface {
 	DeleteToken(ctx context.Context, token string) error
 	GetUserHashedPassword(ctx context.Context, login string) (string, error)
 	DeleteAllUserTokens(ctx context.Context, login string) error
-	IsAuthTokenExists(ctx context.Context, token string) (bool, error)
 	GetUserByAuthToken(ctx context.Context, token string) (user.User, error)
 }
 
