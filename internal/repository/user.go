@@ -60,3 +60,19 @@ func (r repository) GetUserByAuthToken(ctx context.Context, token string) (userD
 
 	return user, nil
 }
+
+func (r repository) GetUserHashedPassword(ctx context.Context, login string) (string, error) {
+	var password string
+
+	err := r.conn.QueryRowContext(
+		ctx,
+		`select password from "user" where login = $1;`,
+		login,
+	).Scan(&password)
+	if err != nil {
+		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		return "", err
+	}
+
+	return password, nil
+}

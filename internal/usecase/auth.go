@@ -190,7 +190,6 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 }
 
 func (u usecase) Logout(ctx context.Context, token string) (dto.APIResponse[*dto.LogoutResponse, any], int) {
-	// TODO: Add comparison to header token.
 	err := u.userRepository.DeleteToken(ctx, token)
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
