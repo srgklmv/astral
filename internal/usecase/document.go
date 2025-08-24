@@ -160,8 +160,82 @@ func (u usecase) GetDocument(ctx context.Context, token, id string) (dto.APIResp
 	return dto.APIResponse[any, any]{}, doc.File, headers, http.StatusOK
 }
 
-func (u usecase) GetDocumentHead(ctx context.Context, token, id string) (bool, int) {
-	panic("not implemented")
+func (u usecase) GetDocumentHead(ctx context.Context, token, id string) (dto.APIResponse[any, any], []byte, map[string]string, int) {
+	var isTokenValid bool
+	var user userDomain.User
+	var err error
+
+	if token != "" {
+		isTokenValid, user, err = u.authorizeUserByToken(ctx, token)
+		if err != nil {
+			logger.Error("repository call error", slog.String("error", err.Error()))
+			return dto.NewAPIResponse[any, any](&dto.Error{
+				Code: apperrors.InternalErrorErrorCode,
+				Text: apperrors.InternalErrorText,
+			}, nil, nil), nil, nil, http.StatusInternalServerError
+		}
+		if !isTokenValid {
+			return dto.NewAPIResponse[any, any](&dto.Error{
+				Code: apperrors.UnauthorizedErrorCode,
+				Text: apperrors.UnauthorizedErrorText,
+			}, nil, nil), nil, nil, http.StatusUnauthorized
+		}
+	}
+
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return dto.NewAPIResponse[any, any](&dto.Error{
+			Code: apperrors.BadRequestErrorCode,
+			Text: apperrors.BadIDProvidedErrorText,
+		}, nil, nil), nil, nil, http.StatusBadRequest
+	}
+
+	doc, err := u.documentRepository.GetDocument(ctx, uid)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return dto.NewAPIResponse[any, any](&dto.Error{
+			Code: apperrors.BadRequestErrorCode,
+			Text: apperrors.DocumentNotFoundErrorText,
+		}, nil, nil), nil, nil, http.StatusNotFound
+	}
+	if err != nil {
+		logger.Error("repository call error", slog.String("error", err.Error()))
+		return dto.NewAPIResponse[any, any](&dto.Error{
+			Code: apperrors.RepositoryCallErrorCode,
+			Text: apperrors.InternalErrorText,
+		}, nil, nil), nil, nil, http.StatusInternalServerError
+	}
+
+	if !doc.IsPublic && token == "" {
+		return dto.NewAPIResponse[any, any](&dto.Error{
+			Code: apperrors.ForbiddenErrorCode,
+			Text: apperrors.ForbiddenErrorText,
+		}, nil, nil), nil, nil, http.StatusForbidden
+	}
+
+	isOwner := utils.IsSliceIncludesValue(doc.GrantedTo, user.Login)
+	if !isOwner && doc.Owner != user.Login && !user.IsAdmin {
+		return dto.NewAPIResponse[any, any](&dto.Error{
+			Code: apperrors.ForbiddenErrorCode,
+			Text: apperrors.ForbiddenErrorText,
+		}, nil, nil), nil, nil, http.StatusForbidden
+	}
+
+	if !doc.IsFile {
+		return dto.NewAPIResponse[any, any](
+			nil,
+			nil,
+			&doc.JSON,
+		), nil, nil, http.StatusOK
+	}
+
+	headers := make(map[string]string)
+	headers["Content-Type"] = doc.Mimetype
+	headers["Content-Disposition"] = fmt.Sprintf(`attachment; filename="%s"`, doc.Filename)
+	headers["Content-Transfer-Encoding"] = "binary"
+	headers["Content-Length"] = fmt.Sprintf("%d", len(doc.File))
+	headers["Last-Modified"] = doc.CreatedAt.Format("Mon, 02 Jan 2006 15:04:05 GMT")
+
+	return dto.APIResponse[any, any]{}, doc.File, headers, http.StatusOK
 }
 
 func (u usecase) DeleteDocument(ctx context.Context, token, id string) (dto.APIResponse[any, *dto.DeleteDocumentResponse], int) {

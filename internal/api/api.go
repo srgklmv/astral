@@ -20,9 +20,7 @@ type authController interface {
 type documentsController interface {
 	UploadDocument(ctx *fiber.Ctx) error
 	GetDocument(ctx *fiber.Ctx) error
-	GetDocumentHead(ctx *fiber.Ctx) error
 	GetDocuments(ctx *fiber.Ctx) error
-	GetDocumentsHead(ctx *fiber.Ctx) error
 	DeleteDocument(ctx *fiber.Ctx) error
 }
 
@@ -39,8 +37,8 @@ func SetRoutes(app *fiber.App, controller controller) {
 	docs := api.Group("docs")
 	docs.Post("", controller.UploadDocument)
 	docs.Get("/:id", controller.GetDocument)
-	docs.Head("/:id", controller.GetDocumentHead)
+	docs.Head("/:id", controller.GetDocument)
 	docs.Get("", controller.GetDocument)
-	docs.Head("", controller.GetDocumentsHead)
+	docs.Head("", controller.GetDocuments)
 	docs.Delete("/:id", controller.DeleteDocument)
 }

@@ -18,13 +18,8 @@ import (
 
 type documentsUsecase interface {
 	UploadDocument(ctx context.Context, token string, meta dto.UploadDocumentRequestMetadata, json dto.UploadDocumentRequestJSON, file *bytes.Buffer) (dto.APIResponse[any, *dto.UploadFileResponse], int)
-	// TODO: is token needed here or it can be used in middleware?
 	GetDocuments(ctx context.Context, token, login, filterKey, filterValue string, limit int) (dto.APIResponse[any, *dto.GetDocumentsResponse], int)
-	// TODO: What should be in headers of getting files?
-	GetDocumentsHead(ctx context.Context, token, login, filterKey, filterValue string, limit int) (bool, int)
 	GetDocument(ctx context.Context, token, id string) (dto.APIResponse[any, any], []byte, map[string]string, int)
-	// TODO: What should be in headers of getting file?
-	GetDocumentHead(ctx context.Context, token, id string) (bool, int)
 	DeleteDocument(ctx context.Context, token, id string) (dto.APIResponse[any, *dto.DeleteDocumentResponse], int)
 }
 
@@ -100,10 +95,6 @@ func (c controller) GetDocuments(fc *fiber.Ctx) error {
 	panic("not implemented")
 }
 
-func (c controller) GetDocumentsHead(fc *fiber.Ctx) error {
-	panic("not implemented")
-}
-
 func (c controller) GetDocument(fc *fiber.Ctx) error {
 	var req dto.GetDocumentRequest
 	_ = fc.BodyParser(&req)
@@ -124,10 +115,6 @@ func (c controller) GetDocument(fc *fiber.Ctx) error {
 	fc.Attachment("popa.pdf")
 
 	return fc.Status(status).Send(file)
-}
-
-func (c controller) GetDocumentHead(fc *fiber.Ctx) error {
-	panic("not implemented")
 }
 
 func (c controller) DeleteDocument(fc *fiber.Ctx) error {
