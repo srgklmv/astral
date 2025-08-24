@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log/slog"
 	"mime/multipart"
@@ -19,7 +18,7 @@ import (
 type documentsUsecase interface {
 	UploadDocument(ctx context.Context, token string, meta dto.UploadDocumentRequestMetadata, json dto.UploadDocumentRequestJSON, file *bytes.Buffer) (dto.APIResponse[any, *dto.UploadFileResponse], int)
 	GetDocuments(ctx context.Context, request dto.GetDocumentsRequest) (dto.APIResponse[any, *dto.GetDocumentsResponse], int)
-	GetDocument(ctx context.Context, token, id string) (dto.APIResponse[any, any], []byte, map[string]string, int)
+	GetDocument(ctx context.Context, token, id string) (dto.APIResponse[any, any], []byte, string, int)
 	DeleteDocument(ctx context.Context, token, id string) (dto.APIResponse[any, *dto.DeleteDocumentResponse], int)
 }
 
@@ -113,18 +112,14 @@ func (c controller) GetDocument(fc *fiber.Ctx) error {
 
 	id := fc.Params("id")
 
-	response, file, headers, status := c.documentsUsecase.GetDocument(fc.Context(), req.Token, id)
+	response, file, filename, status := c.documentsUsecase.GetDocument(fc.Context(), req.Token, id)
 
 	if len(file) == 0 {
 		return fc.Status(status).JSON(response)
 	}
 
-	fmt.Print("\n REMOVE ME! ", "headers: ", headers, "\n")
-	// Form data must be a choice.
-
-	// TODO: Add headers. Which exactly? Multipart? What is going on?
-	// TODO: Get headers from usecase with struct.
-	fc.Attachment("popa.pdf")
+	// Form data may be a choice.
+	fc.Attachment(filename)
 
 	return fc.Status(status).Send(file)
 }

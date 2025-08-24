@@ -42,6 +42,7 @@ const (
 const (
 	InvalidFileNameErrorText       ErrorText = "Invalid file name."
 	InvalidMimeTypeErrorText       ErrorText = "Invalid mime type."
+	MimeTypeNotAllowedErrorText    ErrorText = "Mime type not allowed."
 	DocumentIDNotProvidedErrorText ErrorText = "No document ID provided."
 	DocumentNotFoundErrorText      ErrorText = "Document not found."
 	BadIDProvidedErrorText         ErrorText = "Invalid document ID."

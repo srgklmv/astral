@@ -168,12 +168,9 @@ func (u usecase) Auth(ctx context.Context, login, password string) (dto.APIRespo
 		}, nil, nil), http.StatusInternalServerError
 	}
 
-	// TODO: Add caching.
-
 	token := userDomain.GenerateAuthToken()
 
 	err = u.userRepository.SaveAuthToken(ctx, login, token)
-
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
 		return dto.NewAPIResponse[*dto.AuthResponse, any](&dto.Error{
