@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -203,16 +205,19 @@ func (u usecase) Logout(ctx context.Context, token string) (dto.APIResponse[*dto
 	}, nil), http.StatusOK
 }
 
-func (u usecase) validateAuthToken(ctx context.Context, token string) (isValid bool, login string, err error) {
+func (u usecase) authorizeUserByToken(ctx context.Context, token string) (bool, userDomain.User, error) {
 	if token == "" {
-		return false, "", nil
+		return false, userDomain.User{}, nil
 	}
 
-	login, err = u.userRepository.GetUserLoginByAuthToken(ctx, token)
+	user, err := u.userRepository.GetUserByAuthToken(ctx, token)
+	if err != nil && errors.Is(err, sql.ErrNoRows) {
+		return false, user, nil
+	}
 	if err != nil {
 		logger.Error("repository call error", slog.String("error", err.Error()))
-		return false, "", err
+		return false, user, err
 	}
 
-	return login != "", login, nil
+	return true, user, nil
 }

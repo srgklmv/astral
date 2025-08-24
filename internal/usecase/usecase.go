@@ -31,7 +31,7 @@ type userRepository interface {
 	GetUserHashedPassword(ctx context.Context, login string) (string, error)
 	DeleteAllUserTokens(ctx context.Context, login string) error
 	IsAuthTokenExists(ctx context.Context, token string) (bool, error)
-	GetUserLoginByAuthToken(ctx context.Context, token string) (string, error)
+	GetUserByAuthToken(ctx context.Context, token string) (user.User, error)
 }
 
 type usecase struct {

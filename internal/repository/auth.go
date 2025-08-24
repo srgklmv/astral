@@ -2,8 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"log/slog"
 
+	userDomain "github.com/srgklmv/astral/internal/domain/user"
 	"github.com/srgklmv/astral/pkg/logger"
 )
 
@@ -23,18 +26,23 @@ func (r repository) IsAuthTokenExists(ctx context.Context, token string) (bool, 
 	return exists, nil
 }
 
-func (r repository) GetUserLoginByAuthToken(ctx context.Context, token string) (string, error) {
-	var login string
+func (r repository) GetUserByAuthToken(ctx context.Context, token string) (userDomain.User, error) {
+	var user userDomain.User
 
 	err := r.conn.QueryRowContext(
 		ctx,
-		`select coalesce((select user_login from auth_token where token = $1), '');`,
+		`select u.id, u.login, u.is_admin 
+		from auth_token at
+		left join "user" u on at.user_login = u.login		    
+		where at.token = $1;`,
 		token,
-	).Scan(&login)
+	).Scan(&user.ID, &user.Login, &user.IsAdmin)
 	if err != nil {
-		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
-		return "", err
+		if !errors.Is(err, sql.ErrNoRows) {
+			logger.Error("QueryRowContext error", slog.String("error", err.Error()))
+		}
+		return user, err
 	}
 
-	return login, nil
+	return user, nil
 }

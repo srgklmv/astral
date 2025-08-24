@@ -44,8 +44,9 @@ const (
 	DocumentIDNotProvidedErrorText ErrorText = "No document ID provided."
 	DocumentNotFoundErrorText      ErrorText = "Document not found."
 	BadIDProvidedErrorText         ErrorText = "Invalid document ID."
+	FileNotProvidedErrorText       ErrorText = "File not provided."
 )
 
 const (
-	FileUploadingErrorCode ErrorCode = 300 + iota
+	DocumentUploadingErrorCode ErrorCode = 300 + iota
 )
