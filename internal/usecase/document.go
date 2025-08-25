@@ -46,6 +46,13 @@ func (u usecase) UploadDocument(ctx context.Context, token string, meta dto.Uplo
 		}, nil, nil), http.StatusBadRequest
 	}
 
+	if !meta.IsFile && len(json) == 0 {
+		return dto.NewAPIResponse[any, *dto.UploadFileResponse](&dto.Error{
+			Code: apperrors.BadRequestErrorCode,
+			Text: apperrors.JSONNotProvidedErrorText,
+		}, nil, nil), http.StatusBadRequest
+	}
+
 	doc, err := u.documentRepository.UploadDocument(
 		ctx,
 		user.Login,

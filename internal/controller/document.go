@@ -36,14 +36,7 @@ func (c controller) UploadDocument(fc *fiber.Ctx) error {
 
 	var jsonData dto.UploadDocumentRequestJSON
 	jsonString := fc.FormValue("json")
-	err = json.Unmarshal([]byte(jsonString), &jsonData)
-	if err != nil {
-		logger.Error("request parsing error", slog.String("error", err.Error()))
-		return fc.Status(http.StatusBadRequest).JSON(dto.NewAPIResponse[any, any](&dto.Error{
-			Code: apperrors.BodyParsingErrorCode,
-			Text: apperrors.BodyParsingErrorText,
-		}, nil, nil))
-	}
+	_ = json.Unmarshal([]byte(jsonString), &jsonData)
 
 	fileHeader, _ := fc.FormFile("file")
 

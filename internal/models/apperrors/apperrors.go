@@ -47,6 +47,7 @@ const (
 	DocumentNotFoundErrorText      ErrorText = "Document not found."
 	BadIDProvidedErrorText         ErrorText = "Invalid document ID."
 	FileNotProvidedErrorText       ErrorText = "File not provided."
+	JSONNotProvidedErrorText       ErrorText = "JSON not provided."
 )
 
 const (
