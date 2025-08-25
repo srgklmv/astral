@@ -12,6 +12,12 @@ import (
 type Config struct {
 	Database Database `json:"database"`
 	Modules  Modules  `json:"modules"`
+	Cache    Cache    `json:"cache"`
+}
+
+type Cache struct {
+	Cooldown int `json:"cooldown"`
+	Lifespan int `json:"lifespan"`
 }
 
 type Modules struct {

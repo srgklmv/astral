@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/srgklmv/astral/internal/domain/document"
+	"github.com/srgklmv/astral/pkg/cache"
 	"github.com/srgklmv/astral/pkg/logger"
 )
 
@@ -93,24 +94,36 @@ func (r repository) UploadDocument(
 
 	doc.JSON = jsonM
 
+	cache.Cache.Invalidate(login)
 	return doc, nil
 }
 
 func (r repository) DeleteDocument(ctx context.Context, id uuid.UUID) error {
-	_, err := r.conn.ExecContext(
+	var login string
+
+	err := r.conn.QueryRowContext(
 		ctx,
-		`delete from document where id=$1;`,
+		`delete from document where id=$1 returning owner_login;`,
 		id.String(),
-	)
+	).Scan(&login)
 	if err != nil {
 		logger.Error("QueryRowContext error", slog.String("error", err.Error()))
 		return err
 	}
 
+	cache.Cache.Invalidate(login)
+	cache.Cache.Invalidate(id.String())
+
 	return nil
 }
 
 func (r repository) GetDocument(ctx context.Context, id uuid.UUID) (document.Document, error) {
+	cacheKey := fmt.Sprintf("%s%s", "GetDocument", id.String())
+	if k, ok := cache.Cache.Get(cacheKey); ok {
+		value := k.(document.Document)
+		return value, nil
+	}
+
 	var doc document.Document
 	var uid string
 	var jsonb, owners []byte
@@ -150,10 +163,17 @@ func (r repository) GetDocument(ctx context.Context, id uuid.UUID) (document.Doc
 		return doc, err
 	}
 
+	cache.Cache.Set(cacheKey, doc)
 	return doc, nil
 }
 
 func (r repository) GetDocumentsData(ctx context.Context, userLogin string, isAdmin bool, login, key, value string, limit int) (document.DocumentsData, error) {
+	cacheKey := fmt.Sprintf("%s%s%t%s%s%s%d", "GetDocumentsData", userLogin, isAdmin, login, key, value, limit)
+	if k, ok := cache.Cache.Get(cacheKey); ok {
+		value := k.(document.DocumentsData)
+		return value, nil
+	}
+
 	query := []string{
 		`select d.id, d.name, d.is_file, d.is_public, d.mimetype, d.created_at, to_json(array_agg(uda.user_login)) as owners
 		from document d
@@ -226,5 +246,6 @@ func (r repository) GetDocumentsData(ctx context.Context, userLogin string, isAd
 		docs = append(docs, doc)
 	}
 
+	cache.Cache.Set(cacheKey, docs)
 	return docs, nil
 }

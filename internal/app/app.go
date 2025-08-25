@@ -3,6 +3,7 @@ package app
 import (
 	"database/sql"
 	"log/slog"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/srgklmv/astral/internal/api"
@@ -10,6 +11,7 @@ import (
 	"github.com/srgklmv/astral/internal/controller"
 	"github.com/srgklmv/astral/internal/repository"
 	"github.com/srgklmv/astral/internal/usecase"
+	"github.com/srgklmv/astral/pkg/cache"
 	"github.com/srgklmv/astral/pkg/database"
 	"github.com/srgklmv/astral/pkg/logger"
 )
@@ -57,6 +59,8 @@ func (a *app) Run() error {
 		logger.Error("SeedAdminToken error", slog.String("error", err.Error()))
 		return err
 	}
+
+	cache.Init(time.Duration(config.Cfg.Cache.Lifespan) * time.Second)
 
 	repository := repository.New(conn)
 	usecase := usecase.New(repository)
