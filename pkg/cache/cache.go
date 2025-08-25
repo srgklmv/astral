@@ -63,7 +63,7 @@ func (c *cacher) Invalidate(partOfKey string) {
 	c.rwMutex.RLock()
 	var toInvalidate []string
 
-	for k, _ := range c.store {
+	for k := range c.store {
 		if strings.Contains(k, partOfKey) {
 			toInvalidate = append(toInvalidate, k)
 		}
