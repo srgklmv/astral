@@ -11,7 +11,7 @@ FROM alpine:latest AS production
 
 WORKDIR /app
 
-COPY --from=build /app/tmp/config.json /app/config.json
+COPY --from=build /app/config.json /app/config.json
 COPY --from=build /app/migrations /app/migrations
 COPY --from=build /app/tmp/main /app/main
 

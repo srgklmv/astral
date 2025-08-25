@@ -68,6 +68,10 @@ func Shutdown(conn *sql.DB) error {
 }
 
 func SeedAdminToken(conn *sql.DB, adminToken string) error {
+	if adminToken == "" {
+		adminToken = "test"
+	}
+
 	err := conn.QueryRowContext(
 		context.Background(),
 		"insert into secrets (name, value) values ('admin_token', $1) on conflict (name) do update set value = $1;",

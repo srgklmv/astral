@@ -1,0 +1,17 @@
+{
+  "database": {
+    "user": "astral",
+    "password": "astral",
+    "name": "astral",
+    "host": "postgres",
+    "port": "5432"
+  },
+  "cache": {
+    "lifespan": 15
+  },
+  "modules": {
+    "auth": {
+      "adminToken": "amogus"
+    }
+  }
+}

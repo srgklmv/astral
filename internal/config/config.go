@@ -16,7 +16,6 @@ type Config struct {
 }
 
 type Cache struct {
-	Cooldown int `json:"cooldown"`
 	Lifespan int `json:"lifespan"`
 }
 
